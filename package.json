@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@discordjs/voice": "^0.18.0",
+    "bufferutil": "^4.0.8",
+    "discord.js": "^14.16.3",
+    "zlib-sync": "^0.1.9"
+  }
+}
