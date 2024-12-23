@@ -1,15 +1,25 @@
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const {token} = require('./config.json');
+const axios = require('axios');
+require('dotenv').config();
 
-const client = new Client({intents: [GatewayIntentBits.Guilds]});
+const token = process.env.TOKEN;
+const API_port = process.env.PORT;
+
+const client = new Client({intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+]});
+
 
 client.commands = new Collection(); // a better map to store commands
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Logged in as ${readyClient.user.tag}`);
 });
+
 
 
 const foldersPath = path.join(__dirname, 'commands');
@@ -32,6 +42,7 @@ for (const folder of commandFolders){
 
 client.login(token);
 
+
 client.on(Events.InteractionCreate, async interaction => {
     console.log(interaction);
     if (!interaction.isCommand()) return;
@@ -52,4 +63,31 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 		}    
     }
+});
+
+async function sendPrompt(prompt) {
+    try {
+        const response = await axios.post(`http://127.0.0.1:${API_port}/chat`, { prompt });
+        return response.data.response;
+    } catch (error) {
+        console.error('Error:', error.response?.data || error.message);
+    }
+}
+
+// message receving
+// targetChannelId need to turn on developer mode in discord
+client.on('messageCreate', async (message) => {
+    const targetChannelId = '1261652284866035733';
+    const onlyreceiver = "678204112197910540"
+
+    if (message.author.bot) return;
+    if (message.author.id !== onlyreceiver) return;
+    if (message.channelId !== targetChannelId) return;
+
+    const targetChannel = await client.channels.fetch(targetChannelId);
+
+
+    let response = await sendPrompt(message.content);
+
+    targetChannel.send(response);
 });
