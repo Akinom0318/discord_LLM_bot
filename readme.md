@@ -21,6 +21,7 @@ Because dicord.js is already a well-built platform with voice receiving, text, i
 - [ ] Voice channel connecting
 - [x] Receive text from channel --2024/12/23
 - [x] LLM implementation --2024/12/23
+> but need some token limitation and so on
 - [ ] System prompt
 - [ ] Long-term memory of LLM
 - [ ] Receive voice from voice channel

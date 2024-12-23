@@ -12,9 +12,10 @@ repo_id = "mistralai/Mistral-7B-Instruct-v0.2"
 def chatBot(prompt):
     llm = HuggingFaceEndpoint(
         repo_id=repo_id,
-        max_length=128,
+        max_length=1024,
         temperature=0.5,
         huggingfacehub_api_token=HF_API_KEY,
     )
     llm_chain = llm
-    return llm_chain.invoke(prompt)
+    response = llm_chain.invoke(prompt)
+    return response

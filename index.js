@@ -1,11 +1,11 @@
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 require('dotenv').config();
 
 const token = process.env.TOKEN;
 const API_port = process.env.PORT;
-
 
 const client = new Client({intents: [
     GatewayIntentBits.Guilds,
@@ -65,17 +65,29 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-
+async function sendPrompt(prompt) {
+    try {
+        const response = await axios.post(`http://127.0.0.1:${API_port}/chat`, { prompt });
+        return response.data.response;
+    } catch (error) {
+        console.error('Error:', error.response?.data || error.message);
+    }
+}
 
 // message receving
 // targetChannelId need to turn on developer mode in discord
 client.on('messageCreate', async (message) => {
     const targetChannelId = '1261652284866035733';
+    const onlyreceiver = "678204112197910540"
 
     if (message.author.bot) return;
+    if (message.author.id !== onlyreceiver) return;
     if (message.channelId !== targetChannelId) return;
 
     const targetChannel = await client.channels.fetch(targetChannelId);
 
-    targetChannel.send(message.content);
+
+    let response = await sendPrompt(message.content);
+
+    targetChannel.send(response);
 });
