@@ -18,11 +18,14 @@ Because dicord.js is already a well-built platform with voice receiving, text, i
 
 - [x] Create the bot --2024/12/20
 - [x] Simple command implementation --2024/12/20
-- [ ] Receive text from channel
-- [ ] LLM implementation
+- [ ] Voice channel connecting
+- [x] Receive text from channel --2024/12/23
+- [x] LLM implementation --2024/12/23
 - [ ] System prompt
 - [ ] Long-term memory of LLM
 - [ ] Receive voice from voice channel
 > Or I just use voice to text to make the input.
 - [ ] No bugs
 - [ ] And finally run steadily
+
+> Run deploy-command.js if you deploy new commands

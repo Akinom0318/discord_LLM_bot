@@ -1,15 +1,25 @@
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const {token} = require('./config.json');
+require('dotenv').config();
 
-const client = new Client({intents: [GatewayIntentBits.Guilds]});
+const token = process.env.TOKEN;
+const API_port = process.env.PORT;
+
+
+const client = new Client({intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+]});
+
 
 client.commands = new Collection(); // a better map to store commands
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Logged in as ${readyClient.user.tag}`);
 });
+
 
 
 const foldersPath = path.join(__dirname, 'commands');
@@ -32,6 +42,7 @@ for (const folder of commandFolders){
 
 client.login(token);
 
+
 client.on(Events.InteractionCreate, async interaction => {
     console.log(interaction);
     if (!interaction.isCommand()) return;
@@ -52,4 +63,19 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 		}    
     }
+});
+
+
+
+// message receving
+// targetChannelId need to turn on developer mode in discord
+client.on('messageCreate', async (message) => {
+    const targetChannelId = '1261652284866035733';
+
+    if (message.author.bot) return;
+    if (message.channelId !== targetChannelId) return;
+
+    const targetChannel = await client.channels.fetch(targetChannelId);
+
+    targetChannel.send(message.content);
 });
