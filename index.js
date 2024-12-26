@@ -1,4 +1,5 @@
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
+const { Manager } = require('moonlink.js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
@@ -6,11 +7,13 @@ require('dotenv').config();
 
 const token = process.env.TOKEN;
 const API_port = process.env.PORT;
+const moonlink_password = process.env.MOONLINK_PASSWORD;
 
 const client = new Client({intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
 ]});
 
 
@@ -20,7 +23,51 @@ client.once(Events.ClientReady, readyClient => {
     console.log(`Logged in as ${readyClient.user.tag}`);
 });
 
+// Moonlink
+client.moonlink = new Manager({
+    nodes: [{
+        identifier: "node_1",
+        host: "localhost",
+        password: moonlink_password,
+        port: 2333,
+        secure: false,
+    }],
+    options: {},
+    sendPayload: (guildId, payload) => {
+        const guild = client.guilds.cache.get(guildId);
+        if (guild) guild.shard.send(JSON.parse(payload));
+    }
+});
 
+// Event: When a node is successfully created and connected
+client.moonlink.on("nodeCreate", node => {
+    console.log(`${node.host} was connected`);
+});
+
+// Event: When a track starts playing
+client.moonlink.on("trackStart", async (player, track) => {
+    client.channels.cache
+        .get(player.textChannelId)
+        .send(`Now playing: ${track.title}`);
+});
+
+// Event: When a track finishes playing
+client.moonlink.on("trackEnd", async (player, track) => {
+    client.channels.cache
+        .get(player.textChannelId)
+        .send(`Track ended: ${track.title}`);
+});
+
+// Event: When the bot is ready to start working
+client.on("ready", () => {
+    client.moonlink.init(client.user.id); // Initializing Moonlink.js with the bot's ID
+    console.log(`${client.user.tag} is ready!`);
+});
+
+// Event: Handling raw WebSocket events
+client.on("raw", data => {
+    client.moonlink.packetUpdate(data); // Passing raw data to Moonlink.js for handling
+});
 
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
@@ -40,13 +87,14 @@ for (const folder of commandFolders){
     }
 }
 
+
+
 client.login(token);
 
 
 client.on(Events.InteractionCreate, async interaction => {
-    console.log(interaction);
+    //console.log(interaction);
     if (!interaction.isCommand()) return;
-
     const command = interaction.client.commands.get(interaction.commandName);
 
     if (!command) {
@@ -54,6 +102,66 @@ client.on(Events.InteractionCreate, async interaction => {
     };
 
     try {
+        if (interaction.commandName === "play") {
+            if (!interaction.member.voice.channel) {
+                return interaction.reply({
+                    content: `Error: You must be in a voice channel to execute this command.`,
+                    ephemeral: true
+                });
+            }
+    
+            const query = interaction.options.getString("query");
+            const player = client.moonlink.createPlayer({
+                guildId: interaction.guild.id,
+                voiceChannelId: interaction.member.voice.channel.id,
+                textChannelId: interaction.channel.id,
+                autoPlay: true
+            });
+    
+            if (!player.connected) {
+                player.connect({
+                    setDeaf: true, // Deafens the bot upon joining
+                    setMute: false // Ensures the bot isn't muted
+                });
+            }
+    
+            const res = await client.moonlink.search({
+                query,
+                source: "youtube",
+                requester: interaction.user.id
+            });
+    
+            if (res.loadType === "loadfailed") {
+                return interaction.reply({
+                    content: `Error: Failed to load the requested track.`,
+                    ephemeral: true
+                });
+            } else if (res.loadType === "empty") {
+                return interaction.reply({
+                    content: `Error: No results found for the query.`,
+                    ephemeral: true
+                });
+            }
+    
+            if (res.loadType === "playlist") {
+                interaction.reply({
+                    content: `Playlist ${res.playlistInfo.name} has been added to the queue.`
+                });
+    
+                for (const track of res.tracks) {
+                    player.queue.add(track); // Add all tracks from the playlist to the queue
+                }
+            } else {
+                player.queue.add(res.tracks[0]); // Add the first track from the search results
+                interaction.reply({
+                    content: `Track added to the queue: ${res.tracks[0].title}`
+                });
+            }
+    
+            if (!player.playing) {
+                player.play(); // Start playing if not already doing so
+            }
+        }
         await command.execute(interaction);
     } catch (error) {
         console.error(error);
