@@ -30,3 +30,9 @@ Because dicord.js is already a well-built platform with voice receiving, text, i
 - [ ] And finally run steadily
 
 > Run deploy-command.js if you deploy new commands
+
+## Documentations:
+
+[Discord.js](https://discord.js.org/docs/packages/discord.js/main)
+[LavaLink](https://lavalink.dev/getting-started/index.html)
+[MoonLink](https://moonlink.js.org/)
