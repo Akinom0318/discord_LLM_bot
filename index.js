@@ -61,7 +61,7 @@ client.moonlink.on("trackEnd", async (player, track) => {
 // Event: When the bot is ready to start working
 client.on("ready", () => {
     client.moonlink.init(client.user.id); // Initializing Moonlink.js with the bot's ID
-    console.log(`${client.user.tag} is ready!`);
+    console.log(`${client.user.tag} is ready!!!!`);
 });
 
 // Event: Handling raw WebSocket events
@@ -93,7 +93,9 @@ client.login(token);
 
 
 client.on(Events.InteractionCreate, async interaction => {
-    //console.log(interaction);
+    const targetChannelId = '1261652284866035733';
+    if(interaction.channelId !== targetChannelId) return;
+    console.log(interaction);
     if (!interaction.isCommand()) return;
     const command = interaction.client.commands.get(interaction.commandName);
 
@@ -102,65 +104,8 @@ client.on(Events.InteractionCreate, async interaction => {
     };
 
     try {
-        if (interaction.commandName === "play") {
-            if (!interaction.member.voice.channel) {
-                return interaction.reply({
-                    content: `Error: You must be in a voice channel to execute this command.`,
-                    ephemeral: true
-                });
-            }
-    
-            const query = interaction.options.getString("query");
-            const player = client.moonlink.createPlayer({
-                guildId: interaction.guild.id,
-                voiceChannelId: interaction.member.voice.channel.id,
-                textChannelId: interaction.channel.id,
-                autoPlay: true
-            });
-    
-            if (!player.connected) {
-                player.connect({
-                    setDeaf: true, // Deafens the bot upon joining
-                    setMute: false // Ensures the bot isn't muted
-                });
-            }
-    
-            const res = await client.moonlink.search({
-                query,
-                source: "youtube",
-                requester: interaction.user.id
-            });
-    
-            if (res.loadType === "loadfailed") {
-                return interaction.reply({
-                    content: `Error: Failed to load the requested track.`,
-                    ephemeral: true
-                });
-            } else if (res.loadType === "empty") {
-                return interaction.reply({
-                    content: `Error: No results found for the query.`,
-                    ephemeral: true
-                });
-            }
-    
-            if (res.loadType === "playlist") {
-                interaction.reply({
-                    content: `Playlist ${res.playlistInfo.name} has been added to the queue.`
-                });
-    
-                for (const track of res.tracks) {
-                    player.queue.add(track); // Add all tracks from the playlist to the queue
-                }
-            } else {
-                player.queue.add(res.tracks[0]); // Add the first track from the search results
-                interaction.reply({
-                    content: `Track added to the queue: ${res.tracks[0].title}`
-                });
-            }
-    
-            if (!player.playing) {
-                player.play(); // Start playing if not already doing so
-            }
+        if(interaction.commandName === "play"){
+            interaction.client = client;
         }
         await command.execute(interaction);
     } catch (error) {
@@ -184,18 +129,18 @@ async function sendPrompt(prompt) {
 
 // message receving
 // targetChannelId need to turn on developer mode in discord
-client.on('messageCreate', async (message) => {
-    const targetChannelId = '1261652284866035733';
-    const onlyreceiver = "678204112197910540"
+// client.on('messageCreate', async (message) => {
+//     const targetChannelId = '1261652284866035733';
+//     const onlyreceiver = "678204112197910540"
 
-    if (message.author.bot) return;
-    if (message.author.id !== onlyreceiver) return;
-    if (message.channelId !== targetChannelId) return;
+//     if (message.author.bot) return;
+//     if (message.author.id !== onlyreceiver) return;
+//     if (message.channelId !== targetChannelId) return;
 
-    const targetChannel = await client.channels.fetch(targetChannelId);
+//     const targetChannel = await client.channels.fetch(targetChannelId);
 
 
-    let response = await sendPrompt(message.content);
+//     let response = await sendPrompt(message.content);
 
-    targetChannel.send(response);
-});
+//     targetChannel.send(response);
+// });
