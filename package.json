@@ -1,8 +1,16 @@
 {
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
+    "@huggingface/agents": "^0.0.5",
+    "@huggingface/hub": "^1.0.0",
+    "@huggingface/inference": "^2.8.1",
+    "@langchain/community": "^0.3.19",
+    "@langchain/core": "^0.3.26",
     "bufferutil": "^4.0.8",
     "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7",
+    "moonlink.js": "^4.2.2",
+    "ollama": "^0.5.11",
     "zlib-sync": "^0.1.9"
   }
 }
