@@ -17,14 +17,23 @@ module.exports = {
                 });
             }
     
-            const query = interaction.options.getString("query");
             const client = interaction.client;
-            const player = client.moonlink.createPlayer({
-                guildId: interaction.guild.id,
-                voiceChannelId: interaction.member.voice.channel.id,
-                textChannelId: interaction.channel.id,
-                autoPlay: true
-            });
+            const query = interaction.options.getString("query");
+            let player = null;
+            if(client.moonlink.players.cache.size > 0){
+                const [key, _] = client.moonlink.players.cache;
+                player = key[1];
+            }else{
+                player = client.moonlink.createPlayer({
+                    guildId: interaction.guild.id,
+                    voiceChannelId: interaction.member.voice.channel.id,
+                    textChannelId: interaction.channel.id,
+                    autoPlay: false,
+                    volumn: 60
+                });
+            }
+
+
     
             if (!player.connected) {
                 player.connect({
