@@ -1,3 +1,4 @@
+//@ts-nocheck
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 const { Manager } = require('moonlink.js');
 const fs = require('fs');
@@ -87,15 +88,21 @@ for (const folder of commandFolders){
     }
 }
 
-
-
 client.login(token);
 
 
 client.on(Events.InteractionCreate, async interaction => {
     const targetChannelId = '1261652284866035733';
-    if(interaction.channelId !== targetChannelId) return;
+    const onlyreceiver = "678204112197910540"
     console.log(interaction);
+    if(interaction.user.id !== onlyreceiver){
+        return interaction.reply({
+            content: `Error: You are not allowed to use this bot.`,
+            ephemeral: true
+        });
+    }
+    //if(interaction.channelId !== targetChannelId) return;
+
     if (!interaction.isCommand()) return;
     const command = interaction.client.commands.get(interaction.commandName);
 
@@ -103,9 +110,11 @@ client.on(Events.InteractionCreate, async interaction => {
         console.log(`Error: ${interaction.commandName} not found`);
     };
 
+    interaction.client = client;
+
     try {
-        if(interaction.commandName === "play"){
-            interaction.client = client;
+        if(interaction.commandName === "help"){
+            interaction.commands = client.commands;
         }
         await command.execute(interaction);
     } catch (error) {

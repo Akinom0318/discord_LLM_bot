@@ -18,7 +18,7 @@ Because dicord.js is already a well-built platform with voice receiving, text, i
 
 - [x] Create the bot --2024/12/20
 - [x] Simple command implementation --2024/12/20
-- [ ] Voice channel connecting
+- [x] Voice channel connecting --2025/1/1
 - [x] Receive text from channel --2024/12/23
 - [x] LLM implementation --2024/12/23
 > but need some token limitation and so on
